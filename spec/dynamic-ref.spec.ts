@@ -1,4 +1,4 @@
-import type Ajv from "../dist/core"
+import Ajv from "../dist/core"
 import type {SchemaObject} from ".."
 import _Ajv from "./ajv2019"
 import getAjvInstances from "./ajv_instances"
@@ -69,6 +69,32 @@ describe("recursiveRef and dynamicRef", () => {
       }
 
       testTree(treeSchema, strictTreeSchema)
+    })
+
+    it("should allow non-root dynamicRefs", () => {
+      const schema = {
+        type: "object",
+        properties: {
+          schema: {$dynamicRef: "#meta"},
+        },
+        unevaluatedProperties: false,
+
+        $defs: {
+          schema: {
+            $dynamicAnchor: "meta",
+            type: ["object", "boolean"],
+          },
+        },
+      }
+
+      const instance = {
+        schema: {type: "string"},
+      }
+
+      ajvs.forEach((ajv) => {
+        const validate = ajv.compile(schema)
+        assert.strictEqual(validate(instance), true)
+      })
     })
   })
 
